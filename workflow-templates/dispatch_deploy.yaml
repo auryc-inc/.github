@@ -1,6 +1,6 @@
 # revoke repo dispatch on k8s-deployment to triggle deployment
 # k8s-deployment & argocd will handle next steps.
-name: Deploy
+name: DispatchDeploy
 
 on:
   push:
