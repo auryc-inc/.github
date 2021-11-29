@@ -1,40 +1,39 @@
+# revoke repo dispatch on k8s-deployment to triggle deployment
+# k8s-deployment & argocd will handle next steps.
 name: ArgoCD
 
 on:
   push:
     branches:
-      - $default-branch
+      - master
       - release
 jobs:
   dev-app:
-    if: ${{github.ref == 'refs/heads/$default-branch'}}
-    env:
-      deployment_env: development
-    # update k8s-deployment
+    if: ${{github.ref == 'refs/heads/master'}}
     runs-on: ubuntu-latest
     steps:
     - uses: actions/checkout@master
     - uses: FranzDiebold/github-env-vars-action@v1.2.1
-    - name: get commit message
-      id: last-commit
+    - name: Get commit message
       run: |
         echo "::set-output name=author-name::$(git --no-pager log -1 --pretty=format:'%an')"
         echo "::set-output name=author-email::$(git --no-pager log -1 --pretty=format:'%ae')"
         echo "::set-output name=subject::$(git --no-pager log -1 --pretty=format:'%s')"
         echo "::set-output name=hash::$(git --no-pager log -1 --pretty=format:'%h')"
-    - name: Check Out k8s-deployment
-      uses: actions/checkout@master
+    - name: Deploy
+      uses: peter-evans/repository-dispatch@v1
       with:
-        repository: auryc-inc/k8s-deployment
-        ref: refs/heads/master
         token: ${{ secrets.TOKEN_GITHUB_REPOS }}
-        path: k8s-deployment
-    - name: update dsf
-      run: |
-        yq e -i '.image.tag="${{env.GITHUB_SHA_SHORT}}"' values.yaml
-        git config --global user.email  "${{ steps.last-commit.outputs.author-email }}"
-        git config --global user.name   "${{ steps.last-commit.outputs.author-name }}"
-        git add -A
-        git commit -m ":package:  auryc-inc/${{ env.GITHUB_REPOSITORY_NAME }}@${{ steps.last-commit.outputs.hash }} ${{ steps.last-commit.outputs.subject }}" 
-        for i in 1 2 3; do  git pull --ff && git push && break || sleep 5; done
-      working-directory: k8s-deployment/apps/auryc/${{ env.GITHUB_REPOSITORY_NAME }}/overlays/dev
+        repository: auryc-inc/k8s-deployment
+        event-type: deploy
+        client-payload: >
+          {
+            "env": "development",
+            "app": "${{env.GITHUB_REPOSITORY_NAME}}",
+            "tag": "${{env.GITHUB_SHA_SHORT}}",
+            "message": ":package:  auryc-inc/${{env.GITHUB_REPOSITORY_NAME}}@${{steps.last-commit.outputs.hash}} ${{steps.last-commit.outputs.subject}}",
+            "user": {
+              "name": "${{ steps.last-commit.outputs.author-name }}",
+              "email": "${{ steps.last-commit.outputs.author-email }}"
+            }
+          }
