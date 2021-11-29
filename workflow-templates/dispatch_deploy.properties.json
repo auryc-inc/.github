@@ -1,5 +1,5 @@
 {
-    "name": "Argo CD update image",
+    "name": "Dispatch Deployment",
     "description": "update image hash in k8s-deployment",
     "iconName": "example-icon",
     "categories": [
