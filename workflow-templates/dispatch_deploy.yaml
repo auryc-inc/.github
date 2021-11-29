@@ -35,7 +35,7 @@ jobs:
 
   deploy:
     # deploy new image to development/staging/production
-    if: ${{ github.event_name=='push' && contains('master,staging,release',github.head_ref) }}
+    if: ${{ github.event_name=='push' && contains('master,staging,release',github.ref_name) }}
     # needs: image-build
     runs-on: ubuntu-latest
     steps:
@@ -47,8 +47,18 @@ jobs:
         echo "::set-output name=author-email::$(git --no-pager log -1 --pretty=format:'%ae')"
         echo "::set-output name=subject::$(git --no-pager log -1 --pretty=format:'%s')"
         echo "::set-output name=hash::$(git --no-pager log -1 --pretty=format:'%h')"
-    - id: branch-env-map
-      run: declare -A branchs && branchs[master]="development" && branchs[staging]="staging" && branchs[release]="production"
+
+        case ${{github.ref_name}} in
+            master)   
+              echo "::set-output name=target-env::development"
+              echo "::set-output name=emoji::cat"  ;;
+            staging)  
+              echo "::set-output name=target-env::staging"
+              echo "::set-output name=emoji::fox_face"  ;;
+            release)  
+              echo "::set-output name=target-env::production"
+              echo "::set-output name=emoji::tiger"  ;;
+        esac
     - name: Deploy
       uses: peter-evans/repository-dispatch@v1
       with:
@@ -57,10 +67,10 @@ jobs:
         event-type: deploy
         client-payload: >
           {
-            "env": "${branchs[${{github.head_ref}}]}",
+            "env": "${{steps.last-commit.outputs.target-env}}",
             "app": "${{env.GITHUB_REPOSITORY_NAME}}",
             "tag": "${{env.GITHUB_SHA_SHORT}}",
-            "message": ":package:  auryc-inc/${{env.GITHUB_REPOSITORY_NAME}}@${{steps.last-commit.outputs.hash}} ${{steps.last-commit.outputs.subject}}",
+            "message": ":${{steps.last-commit.outputs.emoji}}:  auryc-inc/${{env.GITHUB_REPOSITORY_NAME}}@${{steps.last-commit.outputs.hash}} ${{steps.last-commit.outputs.subject}}",
             "user": {
               "name": "${{ steps.last-commit.outputs.author-name }}",
               "email": "${{ steps.last-commit.outputs.author-email }}"
