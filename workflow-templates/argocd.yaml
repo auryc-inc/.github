@@ -7,7 +7,7 @@ on:
       - release
 jobs:
   dev-app:
-    if: ${{github.ref == 'refs/heads/$default-branch '}}
+    if: ${{github.ref == 'refs/heads/$default-branch'}}
     env:
       deployment_env: development
     # update k8s-deployment
