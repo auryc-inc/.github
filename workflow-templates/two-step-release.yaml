@@ -1,0 +1,38 @@
+
+name: Deployment
+
+on:
+  push:
+    branches:
+      - master
+      
+jobs:
+  Draft-Staging-PR:
+    if: ${{github.ref == 'refs/heads/master'}}
+    needs: DEV-upgrade-image
+    runs-on: ubuntu-latest
+    steps:
+    - name: Checkout
+      id: checkout
+      uses: actions/checkout@master
+      with:
+        fetch-depth: 0
+    - name: draft production relase
+      run:
+        echo ${{ secrets.TOKEN_GITHUB_REPOS }} | gh auth login --with-token && 
+        gh pr create -f -l Release -B staging -H master -t "Make Release Candidate (master->staging)" || true
+
+  Draft-Production-PR:
+    if: ${{github.ref == 'refs/heads/staging'}}
+    needs: STG-upgrade-image
+    runs-on: ubuntu-latest
+    steps:
+    - name: Checkout
+      id: checkout
+      uses: actions/checkout@master
+      with:
+        fetch-depth: 0
+    - name: draft production relase
+      run:
+        echo ${{ secrets.TOKEN_GITHUB_REPOS }} | gh auth login --with-token && 
+        gh pr create -f -l Release -B release -H staging -t "Make Production Release (staging->release)" || true

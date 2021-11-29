@@ -1,0 +1,12 @@
+{
+    "name": "Two Step Release",
+    "description": "Master -> Staging -> Release Flow",
+    "iconName": "example-icon",
+    "categories": [
+    ],
+    "filePatterns": [
+        "package.json$",
+        "^Dockerfile",
+        ".*\\.md$"
+    ]
+}

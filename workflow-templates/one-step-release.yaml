@@ -1,0 +1,22 @@
+
+name: Deployment
+
+on:
+  push:
+    branches:
+      - master
+      
+jobs:
+  Draft-Production-Release:
+    if: ${{github.ref == 'refs/heads/master'}}
+    runs-on: ubuntu-latest
+    steps:
+    - name: Checkout
+      id: checkout
+      uses: actions/checkout@master
+      with:
+        fetch-depth: 0
+    - name: draft production relase
+      run:
+        echo ${{ secrets.TOKEN_GITHUB_REPOS }} | gh auth login --with-token && 
+        gh pr create -f -B release -H master -t "Release master since $(date +'%Y-%m-%d')" || true
