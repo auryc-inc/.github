@@ -14,7 +14,7 @@ jobs:
     steps:
     - uses: actions/checkout@master
     - uses: FranzDiebold/github-env-vars-action@v1.2.1
-    - name: Get commit message
+    - id: last-commit
       run: |
         echo "::set-output name=author-name::$(git --no-pager log -1 --pretty=format:'%an')"
         echo "::set-output name=author-email::$(git --no-pager log -1 --pretty=format:'%ae')"
