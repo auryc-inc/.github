@@ -19,4 +19,4 @@ jobs:
     - name: draft production relase
       run:
         echo ${{ secrets.TOKEN_GITHUB_REPOS }} | gh auth login --with-token && 
-        gh pr create -f -B release -H master -t "Make Production Release (staging->release)"  || true
+        gh pr create -f -B release -H master -t "Make Production Release (master->release)"  || true
